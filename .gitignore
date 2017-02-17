@@ -39,7 +39,3 @@ jspm_packages
 # Generated #
 !karma.conf.js
 !karma-test-shim.js
-*.js
-*.map
-*.d.ts
-typings
