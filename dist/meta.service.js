@@ -27,19 +27,11 @@ var MetaService = (function () {
         this.metaConfig = metaConfig;
         this.router.events
             .filter(function (event) { return (event instanceof NavigationEnd); })
-            .map(function () { return _this._findLastChild(_this.activatedRoute); })
+            .map(function () { return (_this.activatedRoute && _this.activatedRoute.firstChild && _this.activatedRoute.firstChild.snapshot && _this.activatedRoute.firstChild.snapshot.data); })
             .subscribe(function (routeData) {
             _this._updateMetaTags(routeData.meta);
         });
     }
-    MetaService.prototype._findLastChild = function (activatedRoute) {
-        var snapshot = activatedRoute.snapshot;
-        var child = snapshot.firstChild;
-        while (child.firstChild !== null) {
-            child = child.firstChild;
-        }
-        return child.data;
-    };
     MetaService.prototype._getOrCreateMetaTag = function (name) {
         var el = this.document.querySelector("meta[name='" + name + "']");
         if (!el) {
@@ -49,25 +41,32 @@ var MetaService = (function () {
         }
         return el;
     };
+    MetaService.prototype._notLoaded = function () {
+        return this.url != this.document.location.href;
+    };
     MetaService.prototype._updateMetaTags = function (meta) {
         var _this = this;
         if (meta === void 0) { meta = {}; }
         if (meta.disableUpdate) {
             return false;
         }
-        this.setTitle(meta.title, meta.titleSuffix);
+        if (this._notLoaded()) {
+            this.setTitle(meta.title, meta.titleSuffix);
+        }
         Object.keys(meta).forEach(function (key) {
             if (key === 'title' || key === 'titleSuffix') {
                 return;
             }
             _this.setTag(key, meta[key]);
         });
-        Object.keys(this.metaConfig.defaults).forEach(function (key) {
-            if (key in meta || key === 'title' || key === 'titleSuffix') {
-                return;
-            }
-            _this.setTag(key, _this.metaConfig.defaults[key]);
-        });
+        if (this._notLoaded()) {
+            Object.keys(this.metaConfig.defaults).forEach(function (key) {
+                if (key in meta || key === 'title' || key === 'titleSuffix') {
+                    return;
+                }
+                _this.setTag(key, _this.metaConfig.defaults[key]);
+            });
+        }
     };
     MetaService.prototype.setTitle = function (title, titleSuffix) {
         var titleElement = this._getOrCreateMetaTag('title');
@@ -79,6 +78,7 @@ var MetaService = (function () {
         titleElement.setAttribute('content', titleStr);
         ogTitleElement.setAttribute('content', titleStr);
         this.titleService.setTitle(titleStr);
+        this.url = this.document.location.href;
         return this;
     };
     MetaService.prototype.setTag = function (tag, value) {
@@ -92,6 +92,7 @@ var MetaService = (function () {
             var ogDescElement = this._getOrCreateMetaTag('og:description');
             ogDescElement.setAttribute('content', tagStr);
         }
+        this.url = this.document.location.href;
         return this;
     };
     return MetaService;

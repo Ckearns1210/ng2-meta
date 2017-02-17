@@ -9,9 +9,10 @@ export declare class MetaService {
     private titleService;
     private activatedRoute;
     private metaConfig;
+    private url;
     constructor(router: Router, document: any, titleService: Title, activatedRoute: ActivatedRoute, metaConfig: MetaConfig);
-    private _findLastChild(activatedRoute);
     private _getOrCreateMetaTag(name);
+    private _notLoaded();
     private _updateMetaTags(meta?);
     setTitle(title?: string, titleSuffix?: string): MetaService;
     setTag(tag: string, value: string): MetaService;
